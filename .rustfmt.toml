@@ -1,0 +1,5 @@
+#https://rust-lang.github.io/rustfmt/
+#All Comment out features are not stable and only available in nightly channel. Once it's available on stable it will be uncommented
+newline_style = "Native"
+use_try_shorthand = true
+#group_imports = "StdExternalCrate"

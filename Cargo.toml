@@ -1,0 +1,2 @@
+[workspace]
+members = ["kv_db", "multi_key_db"]
