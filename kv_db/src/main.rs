@@ -2,6 +2,7 @@ mod constants;
 mod event_loop;
 mod flags;
 
+use crate::event_loop::save_to_disk;
 use clap::ArgMatches;
 use event_loop::{add, event_loop, flush_to_stdout, get, remove};
 use log::{debug, error, trace, warn, LevelFilter};
@@ -34,7 +35,7 @@ fn main() {
     let mut db = db.unwrap();
 
     if matches.is_present(constants::INTERACTIVE) {
-        if let Err(error) = event_loop(&mut db) {
+        if let Err(error) = event_loop(&mut db, &db_file) {
             error!("Interactive error {}", error);
             return;
         };
@@ -93,7 +94,7 @@ fn main() {
         }
     }
 
-    if let Err(error) = flush(db, &db_file) {
+    if let Err(error) = save_to_disk(&mut db, &db_file) {
         error!("Database writing to disk failure: {}", error);
         return;
     }
@@ -123,18 +124,6 @@ fn create_db(db_file: &str) -> Result<Database<String, String>, DBError> {
             }
         }
     }
-}
-
-fn flush(mut database: Database<String, String>, db_file: &str) -> Result<(), DBError> {
-    let mut writer = OpenOptions::new()
-        .read(false)
-        .write(true)
-        .truncate(true)
-        .create(true)
-        .open(db_file)?;
-    trace!("Write Database file opened.");
-
-    database.flush(&mut writer)
 }
 
 fn set_logger(log_level: LevelFilter) {

@@ -5,6 +5,7 @@ pub(crate) const GET: &str = "get";
 pub(crate) const REMOVE: &str = "remove";
 pub(crate) const PRINT: &str = "print";
 pub(crate) const LOG: &str = "log";
+pub(crate) const SAVE: &str = "save";
 //commands
 pub(crate) const INTERACTIVE: &str = "interactive";
 pub(crate) const FILE: &str = "db-file";

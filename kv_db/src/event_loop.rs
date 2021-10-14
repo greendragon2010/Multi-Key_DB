@@ -1,17 +1,20 @@
 use crate::constants::{self};
+use std::fs::OpenOptions;
 
 use crate::Key;
 use crate::KeyError;
+use log::trace;
 use multi_key_db::database::Database;
 use multi_key_db::error::DBError;
 use std::io::{self, Write};
 
-pub fn event_loop(database: &mut Database<String, String>) -> Result<(), DBError> {
+pub fn event_loop(database: &mut Database<String, String>, db_file: &str) -> Result<(), DBError> {
     io::stdout().write_all(b"Support Commands:\n")?;
     io::stdout().write_all(b"Add    -k <key>... -v <value>...\n")?;
     io::stdout().write_all(b"Get    -k <key>...\n")?;
     io::stdout().write_all(b"Remove -k <key>...\n")?;
     io::stdout().write_all(b"Print\n")?;
+    io::stdout().write_all(b"Save to Disk\n")?;
     io::stdout().write_all(b"Exit\n")?;
     loop {
         io::stdout().write_all(b"[kv db]")?;
@@ -67,6 +70,11 @@ pub fn event_loop(database: &mut Database<String, String>) -> Result<(), DBError
             "exit" => {
                 return Ok(());
             }
+            constants::SAVE => {
+                if let Err(error) = save_to_disk(database, db_file) {
+                    eprintln!("Database writing to disk failure: {}", error);
+                }
+            }
             unsupported => {
                 eprintln!("Unsupported command {}", unsupported);
             }
@@ -107,6 +115,7 @@ pub fn flush_to_stdout(database: &mut Database<String, String>) -> Result<(), DB
 
     database.flush(&mut handle)
 }
+
 pub fn get(database: &mut Database<String, String>, key: Key<String>) -> Result<(), DBError> {
     for (key, value) in database.get_values(&key) {
         let output = format!("{0}:\t{1}\n", key.to_string('.'), value);
@@ -124,4 +133,16 @@ pub fn remove(database: &mut Database<String, String>, key: Key<String>) -> Resu
     }
     handle.flush()?;
     Ok(())
+}
+
+pub fn save_to_disk(database: &mut Database<String, String>, db_file: &str) -> Result<(), DBError> {
+    let mut writer = OpenOptions::new()
+        .read(false)
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(db_file)?;
+    trace!("Write Database file opened.");
+
+    database.flush(&mut writer)
 }
