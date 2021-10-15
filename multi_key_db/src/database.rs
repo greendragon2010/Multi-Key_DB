@@ -13,6 +13,12 @@ use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 
 use log::{debug, error, trace};
 
+#[cfg(any(feature = "cli-features"))]
+use cli_table::{
+    format::{Align, Justify, Padding},
+    print_stdout, Cell, Table,
+};
+
 type Result<T> = std::result::Result<T, DBError>;
 const SPLIT_SETTING: &str = "split:";
 
@@ -52,6 +58,7 @@ where
             divider: '.', //default divider
         }
     }
+
     /// Creates a in memory database.
     /// Fill data from the file provided
     pub fn new_from_file<F>(file: &mut F) -> Result<Database<K, V>>
@@ -210,6 +217,48 @@ where
 
         debug!("Flushed");
         Ok(())
+    }
+
+    #[cfg(any(feature = "cli-features"))]
+    pub fn get_values_cli(&self, key: &Key<K>) -> Result<()> {
+        let mut contents = Vec::new();
+        let key_value_pairs = self.get_values(key);
+        for (key, value) in key_value_pairs {
+            contents.push(vec![
+                key.to_string(self.divider)
+                    .cell()
+                    .align(Align::Center)
+                    .padding(Padding::builder().right(1).build()),
+                value.to_string().cell().align(Align::Center),
+            ])
+        }
+
+        let table = contents.table().title(vec![
+            "Key".cell().justify(Justify::Center).align(Align::Center),
+            "Value".cell().justify(Justify::Center).align(Align::Center),
+        ]);
+        Ok(print_stdout(table)?)
+    }
+
+    #[cfg(any(feature = "cli-features"))]
+    pub fn print_cli(&mut self) -> Result<()> {
+        let mut contents = Vec::new();
+        let key_value_pairs = self.generate_key_value_pairs();
+        for (key, value) in key_value_pairs {
+            contents.push(vec![
+                key.to_string(self.divider)
+                    .cell()
+                    .align(Align::Center)
+                    .padding(Padding::builder().right(1).build()),
+                value.to_string().cell().align(Align::Center),
+            ])
+        }
+
+        let table = contents.table().title(vec![
+            "Key".cell().justify(Justify::Center).align(Align::Center),
+            "Value".cell().justify(Justify::Center).align(Align::Center),
+        ]);
+        Ok(print_stdout(table)?)
     }
 
     pub fn generate_key_value_pairs(&self) -> Vec<(Key<K>, &V)> {

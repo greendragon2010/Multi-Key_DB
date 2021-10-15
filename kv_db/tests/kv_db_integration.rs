@@ -56,9 +56,10 @@ fn print() -> Result<(), Box<dyn Error>> {
         cmd.arg(db_file);
         cmd.arg("print");
 
-        cmd.assert().success().stdout(predicate::str::contains(
-            r"work.team.git	github.com/example-repo",
-        ));
+        let output = predicate::str::contains("work.team.git")
+            .and(predicate::str::contains("github.com/example-repo"));
+
+        cmd.assert().success().stdout(output);
     }
 
     Ok(())

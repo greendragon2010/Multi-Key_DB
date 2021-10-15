@@ -21,6 +21,7 @@ features = [ "wrap_help"]
 [dependencies.multi_key_db]
 path = "../multi_key_db"
 version = "0.1.0"
+features = ["cli-features"]
 
 [dev-dependencies]
 assert_cmd = "1.0.7"

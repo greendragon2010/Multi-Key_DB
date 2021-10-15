@@ -110,18 +110,11 @@ pub fn add(
 }
 
 pub fn flush_to_stdout(database: &mut Database<String, String>) -> Result<(), DBError> {
-    let out = io::stdout();
-    let mut handle = out.lock();
-
-    database.flush(&mut handle)
+    database.print_cli()
 }
 
 pub fn get(database: &mut Database<String, String>, key: Key<String>) -> Result<(), DBError> {
-    for (key, value) in database.get_values(&key) {
-        let output = format!("{0}:\t{1}\n", key.to_string('.'), value);
-        io::stdout().write_all(output.as_bytes())?;
-    }
-    Ok(io::stdout().flush()?)
+    database.get_values_cli(&key)
 }
 
 pub fn remove(database: &mut Database<String, String>, key: Key<String>) -> Result<(), DBError> {
